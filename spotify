@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+
+showHelp () {
+    echo "------------------------------------";
+    echo "A command-line interface for Spotify";
+    echo "------------------------------------";
+    echo "Usage: `basename $0` <option>";
+    echo;
+    echo "Options:";
+    echo " status   = Shows Spotify's status, current track details.";
+    echo " play     = Start playing Spotify.";
+    echo " pause    = Pause Spotify.";
+    echo " next     = Go to the next track.";
+    echo " prev     = Go to the previous track.";
+    echo " vol up   = Increase Spotify's volume by 10%";
+    echo " vol down = Increase Spotify's volume by 10%";
+    echo " vol #    = Set Spotify's volume to # [0-100]";
+    echo " shuffle  = Toggle shuffle.";
+    echo " repeat   = Toggle repeat.";
+    echo " prev     = Go to the previous track.";
+    echo " quit     = Quit Spotify.";
+}
+
+if [ $# = 0 ]; then
+    showHelp;
+fi
+
+while [ $# -gt 0 ]; do
+    arg=$1;
+    case $arg in
+        "status" ) state=`osascript -e 'tell application "Spotify" to player state as string'`;
+            echo "Spotify is currently $state.";
+            if [ $state = "playing" ]; then
+                artist=`osascript -e 'tell application "Spotify" to artist of current track as string'`;
+		album=`osascript -e 'tell application "Spotify" to album of current track as string'`;
+                track=`osascript -e 'tell application "Spotify" to name of current track as string'`;
+
+                echo -e "Artist: $artist\nAlbum: $album\nTrack: $track";
+            fi
+            break ;;
+
+        "play"    ) echo "Playing Spotify.";
+            osascript -e 'tell application "Spotify" to play';
+            break ;;
+
+        "pause"    ) echo "Pausing Spotify.";
+            osascript -e 'tell application "Spotify" to pause';
+            break ;;
+
+        "next"    ) echo "Going to next track." ;
+            osascript -e 'tell application "Spotify" to next track';
+            break ;;
+
+        "prev"    ) echo "Going to previous track.";
+            osascript -e 'tell application "Spotify" to previous track';
+            break ;;
+
+        "vol"    ) echo "Changing Spotify volume level.";
+            vol=`osascript -e 'tell application "Spotify" to sound volume as integer'`;
+
+            if [ $2 = "up" ]; then
+                newvol=$(( vol+10 ));
+            elif [ $2 = "down" ]; then
+                newvol=$(( vol-10 ));
+	    elif [ $2 -gt 0 ]; then
+		newvol=$2;
+            fi
+
+            osascript -e "tell application \"Spotify\" to set sound volume to $newvol";
+            break ;;
+
+        "shuffle"   ) echo "Toggle Spotify shuffle.";
+            osascript -e 'tell application "Spotify" to set shuffling to not shuffling';
+            break ;;
+        
+        "repeat"    ) echo "Toggle Spotify repeat.";
+            osascript -e 'tell application "Spotify" to set repeating to not repeating';
+            break ;;
+
+        "quit"    ) echo "Quitting Spotify.";
+            osascript -e 'tell application "Spotify" to quit';
+            exit 1 ;;
+
+        "help" | * ) echo "help:";
+            showHelp;
+            break ;;
+    esac
+done
